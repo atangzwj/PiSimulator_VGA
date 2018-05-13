@@ -1,4 +1,4 @@
-module VGAcounter (
+module VGAcounter #(TERMINAL_COUNT = 799) (
    output wire [9:0] q,
    output wire       tc,
    input  wire       en,
@@ -6,7 +6,7 @@ module VGAcounter (
    input  wire       reset
 );
 
-   assign tc = q == 10'd799;
+   assign tc = q == TERMINAL_COUNT;
 
    always @ (posedge clk) begin
       if (reset)   q <= 10'b0;
