@@ -1,5 +1,5 @@
 module VGAcounter #(TERMINAL_COUNT = 799) (
-   output wire [9:0] q,
+   output reg  [9:0] q,
    output wire       tc,
    input  wire       en,
    input  wire       clk,
@@ -20,10 +20,10 @@ module VGAcounter_testbench ();
    reg        clk;
    wire       reset;
 
-   wire h_reset, v_reset;
+   wire reset_h, reset_v;
 
    assign reset_h = reset | (q_h == 10'd799);
-   assign reset_v = reset | (q_v == 10'524);
+   assign reset_v = reset | (q_v == 10'd524);
 
    VGAcounter count_h (
       .q(q_h), 

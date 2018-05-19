@@ -11,8 +11,8 @@ module VGAcomparator_testbench ();
    wire HS, VS;
    reg  a_h, a_v;
 
-   VGAcomparator comp_h (.lt(HS), .a(a_h), .b(10'd96);
-   VGAcomparator comp_v (.lt(VS), .a(a_v), .b(10'd2);
+   VGAcomparator comp_h (.lt(HS), .a(a_h), .b(10'd96));
+   VGAcomparator comp_v (.lt(VS), .a(a_v), .b(10'd2));
 
    integer i, j;
    initial begin

@@ -1,6 +1,6 @@
 module PiSimulator_VGA (
-   input wire clk100;
-   input wire reset;
+   input wire clk100,
+   input wire reset
 );
 
    // Clock divider
@@ -17,14 +17,14 @@ module PiSimulator_VGA (
 
    wire vertCountReset;
    assign vertCountReset = tc_h & tc_v;
-   VGAcounter horizCount #(.TERMINAL_COUNT(799)) (
+   VGAcounter #(.TERMINAL_COUNT(799)) horizCount (
       .q(hCount),
       .tc(tc_h),
       .en(clk25),
       .clk(clk25),
       .reset(tc_h)
    );
-   VGAcounter vertCount #(.TERMINAL_COUNT(524)) (
+   VGAcounter #(.TERMINAL_COUNT(524)) vertCount (
       .q(vCount),
       .tc(tc_v),
       .en(tc),
