@@ -17,13 +17,12 @@ endmodule
 module VGAcounter_testbench ();
    wire [9:0] q_h, q_v;
    wire       tc;
-   reg        clk;
-   wire       reset;
+   reg        clk, reset;
 
    wire reset_h, reset_v;
 
    assign reset_h = reset | (q_h == 10'd799);
-   assign reset_v = reset | (q_v == 10'd524);
+   assign reset_v = reset | (q_v == 10'd524 & q_h == 10'd799);
 
    VGAcounter count_h (
       .q(q_h), 
@@ -44,5 +43,13 @@ module VGAcounter_testbench ();
    initial begin
       clk <= 1;
       forever #(CLK_PER / 2) clk <= ~clk;
+   end
+
+   initial begin
+      reset <= 0; @(posedge clk);
+      reset <= 1; @(posedge clk);
+      reset <= 0; @(posedge clk);
+      repeat (420100) @(posedge clk);
+      $stop;
    end
 endmodule

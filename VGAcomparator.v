@@ -8,8 +8,8 @@ module VGAcomparator (
 endmodule
 
 module VGAcomparator_testbench ();
-   wire HS, VS;
-   reg  a_h, a_v;
+   wire       HS, VS;
+   reg  [9:0] a_h, a_v;
 
    VGAcomparator comp_h (.lt(HS), .a(a_h), .b(10'd96));
    VGAcomparator comp_v (.lt(VS), .a(a_v), .b(10'd2));
