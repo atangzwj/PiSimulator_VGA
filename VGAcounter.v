@@ -16,25 +16,25 @@ endmodule
 
 module VGAcounter_testbench ();
    wire [9:0] q_h, q_v;
-   wire       tc;
+   wire       tc_h, tc_v;
    reg        clk, reset;
 
    wire reset_h, reset_v;
 
-   assign reset_h = reset | (q_h == 10'd799);
-   assign reset_v = reset | (q_v == 10'd524 & q_h == 10'd799);
+   assign reset_h = reset | tc_h;
+   assign reset_v = reset | (tc_h & tc_v);
 
-   VGAcounter count_h (
+   VGAcounter #(.TERMINAL_COUNT(799)) count_h (
       .q(q_h), 
-      .tc(tc), 
+      .tc(tc_h),
       .en(clk), 
-      .clk(clk), 
+      .clk(clk),
       .reset(reset_h)
    );
-   VGAcounter count_v (
+   VGAcounter #(.TERMINAL_COUNT(524)) count_v (
       .q(q_v),
-      .tc(),
-      .en(tc),
+      .tc(tc_v),
+      .en(tc_h),
       .clk(clk),
       .reset(reset_v)
    );
