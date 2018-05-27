@@ -9,7 +9,7 @@ module PiSimulator_VGA (
    // Clock divider
    reg [1:0] clk_div;
    always @ (posedge clk100) begin
-      if (reset) clk_div <= 1'b0;
+      if (reset) clk_div <= 2'b0;
       else       clk_div <= clk_div + 1'b1;
    end
 
