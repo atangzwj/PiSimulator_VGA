@@ -1,23 +1,18 @@
 module PiSimulator_VGA (
-   output wire HS,
-   output wire VS,
-   output wire vidSel,
-   input  wire clk100,
-   input  wire reset
+   output wire       HS,
+   output wire       VS,
+   output wire [9:0] px_x,
+   output wire [9:0] px_y,
+   output wire       vidSel,
+   input  wire       clk25,
+   input  wire       reset
 );
-
-   // Clock divider
-   reg [1:0] clk_div;
-   always @ (posedge clk100) begin
-      if (reset) clk_div <= 2'b0;
-      else       clk_div <= clk_div + 1'b1;
-   end
-
-   wire clk25;
-   assign clk25 = clk_div[1];
 
    wire [9:0] hCount, vCount;
    wire       tc_h, tc_v;
+
+   assign px_x = hCount - 10'd144;
+   assign px_y = vCount - 10'd35;
 
    wire horizCountReset, vertCountReset;
    assign horizCountReset = reset | tc_h;
@@ -25,7 +20,7 @@ module PiSimulator_VGA (
    VGAcounter #(.TERMINAL_COUNT(799)) horizCount (
       .q(hCount),
       .tc(tc_h),
-      .en(clk25),
+      .en(1'b1),
       .clk(clk25),
       .reset(horizCountReset)
    );
@@ -37,8 +32,11 @@ module PiSimulator_VGA (
       .reset(vertCountReset)
    );
 
-   VGAcomparator horizComp (.lt(HS), .a(hCount), .b(10'd96));
-   VGAcomparator vertComp (.lt(VS), .a(vCount), .b(10'd2));
+   wire HSn, VSn;
+   VGAcomparator horizComp (.lt(HSn), .a(hCount), .b(10'd96));
+   VGAcomparator vertComp (.lt(VSn), .a(vCount), .b(10'd2));
+   assign HS = ~HSn;
+   assign VS = ~VSn;
 
    wire ltHorizLow, ltHorizHigh;
    VGAcomparator horizLowCheck (.lt(ltHorizLow), .a(hCount), .b(10'd144));
@@ -59,18 +57,17 @@ module PiSimulator_VGA_testbench ();
       .HS(HS),
       .VS(VS),
       .vidSel(vidSel),
-      .clk100(clk),
+      .clk25(clk),
       .reset(reset)
    );
 
-   parameter CLK_PER = 10;
+   parameter CLK_PER = 40;
    initial begin
       clk <= 1;
       forever #(CLK_PER / 2) clk <= ~clk;
    end
 
    initial begin
-      reset <= 0; @(posedge clk);
       reset <= 1; @(posedge clk);
       reset <= 0; @(posedge clk);
       repeat (1680400) @(posedge clk);
