@@ -7,6 +7,18 @@ module Arty_Z7 (
    input  wire       clk
 );
 
+   wire reset;
+   assign reset = btn[0];
+
+   reg [1:0] clk_div;
+   always @ (posedge clk) begin
+      if (reset) clk_div <= 2'b0;
+      else       clk_div <= clk_div + 1'b1;
+   end
+
+   wire clk25;
+   assign clk25 = clk_div[1];
+
    wire [3:0] r;
    wire [3:0] g;
    wire [3:0] b;
@@ -28,31 +40,45 @@ module Arty_Z7 (
    assign jb_p[3] = HS;
    assign jb_n[3] = VS;
 
+   wire [9:0] px_x, px_y;
    wire vidSel;
    PiSimulator_VGA pisim_vga (
       .HS(HS),
       .VS(VS),
+      .px_x(px_x),
+      .px_y(px_y),
       .vidSel(vidSel),
-      .clk100(clk),
-      .reset(btn[0])
+      .clk25(clk25),
+      .reset(reset)
    );
+
+   reg [3:0] rSel;
+   reg [3:0] gSel;
+   reg [3:0] bSel;
+   always @ (*) begin
+      if (px_y < 10'd240) rSel = 4'hF;
+      else                rSel = 4'h0;
+
+      if (px_y >= 10'd240) bSel = 4'hF;
+      else                 bSel = 4'h0;
+   end
 
    busMux2_1 #(.WIDTH(4)) r_mux (
       .out(r),
-      .in0(4'hC),
-      .in1(4'hF),
+      .in0(4'h0),
+      .in1(rSel),
       .sel(vidSel)
    );
    busMux2_1 #(.WIDTH(4)) g_mux (
       .out(g),
-      .in0(4'hA),
-      .in1(4'h0),
+      .in0(4'h0),
+      .in1(gSel),
       .sel(vidSel)
    );
    busMux2_1 #(.WIDTH(4)) b_mux (
       .out(b),
-      .in0(4'h7),
-      .in1(4'h0),
+      .in0(4'h0),
+      .in1(bSel),
       .sel(vidSel)
    );
 endmodule
