@@ -10,14 +10,12 @@ module Arty_Z7 (
    wire reset;
    assign reset = btn[0];
 
-   reg [1:0] clk_div;
-   always @ (posedge clk) begin
-      if (reset) clk_div <= 2'b0;
-      else       clk_div <= clk_div + 1'b1;
-   end
-
    wire clk25;
-   assign clk25 = clk_div[1];
+   clk_wiz_0 clk_wiz (
+      .clk_out1(clk25),
+      .reset(reset),
+      .clk_in1(clk)
+   );
 
    wire [3:0] r;
    wire [3:0] g;
@@ -56,11 +54,14 @@ module Arty_Z7 (
    reg [3:0] gSel;
    reg [3:0] bSel;
    always @ (*) begin
-      if (px_y < 10'd240) rSel = 4'hF;
-      else                rSel = 4'h0;
+      if (px_x < 10'd320 & px_y < 10'd240) rSel = 4'hF;
+      else                                 rSel = 4'h0;
 
-      if (px_y >= 10'd240) bSel = 4'hF;
+      if (px_x >= 10'd320) bSel = 4'hF;
       else                 bSel = 4'h0;
+
+      if (px_y >= 10'd240) gSel = 4'hF;
+      else                 gSel = 4'h0;
    end
 
    busMux2_1 #(.WIDTH(4)) r_mux (
