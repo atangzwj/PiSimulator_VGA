@@ -54,14 +54,12 @@ module Arty_Z7 (
    reg [3:0] gSel;
    reg [3:0] bSel;
    always @ (*) begin
-      if (px_x < 10'd320 & px_y < 10'd240) rSel = 4'hF;
-      else                                 rSel = 4'h0;
-
-      if (px_x >= 10'd320) bSel = 4'hF;
-      else                 bSel = 4'h0;
-
-      if (px_y >= 10'd240) gSel = 4'hF;
-      else                 gSel = 4'h0;
+      if (px_x < 10'd472 & px_y < 10'd472)
+         rSel = 4'hF;
+      else
+         rSel = 4'h0;
+      gSel = 4'h0;
+      bSel = 4'h0;
    end
 
    busMux2_1 #(.WIDTH(4)) r_mux (
