@@ -1,10 +1,9 @@
 module pixelMemory (
-   output reg  [3:0] color,
+   output reg        color,
    input  wire [9:0] readX,
    input  wire [9:0] readY,
-   input  wire [9:0] writeX,
-   input  wire [9:0] writeY,
-   input  wire [3:0] wrColor,
+   input  wire [8:0] writeX,
+   input  wire [8:0] writeY,
    input  wire       wrEnable,
    input  wire       clk
 );
@@ -13,9 +12,9 @@ module pixelMemory (
    FRAME_WIDTH  = 640,
    FRAME_HEIGHT = 480;
 
-   reg [3:0] px_color [FRAME_WIDTH * FRAME_HEIGHT - 1 : 0];
+   reg px_color [FRAME_WIDTH * FRAME_HEIGHT - 1 : 0];
 
-   wire [19:0] readAddr, writeAddr;
+   wire [18:0] readAddr, writeAddr;
    assign readAddr = readY * FRAME_WIDTH + readX;
    assign writeAddr = writeY * FRAME_WIDTH + writeX;
 
@@ -25,14 +24,14 @@ module pixelMemory (
 
    always @ (posedge clk) begin
       if (wrEnable)
-         px_color[writeAddr] = wrColor;
+         px_color[writeAddr] <= 1'b1;
    end
 endmodule
 
 module pixelMemory_testbench ();
-   wire [3:0] color;
-   reg  [9:0] readX, readY, writeX, writeY;
-   reg  [3:0] wrColor;
+   wire       color;
+   reg  [9:0] readX, readY;
+   reg  [8:0] writeX, writeY;
    reg        wrEnable;
    reg        clk;
 
@@ -42,7 +41,6 @@ module pixelMemory_testbench ();
       .readY(readY),
       .writeX(writeX),
       .writeY(writeY),
-      .wrColor(wrColor),
       .wrEnable(wrEnable),
       .clk(clk)
    );
@@ -58,16 +56,22 @@ module pixelMemory_testbench ();
       wrEnable <= 1; @(posedge clk);
       for (i = 0; i < 12; i = i + 1) begin
          for (j = 0; j < 12; j = j + 1) begin
-            writeX <= i; writeY <= j; wrColor <= ~(i & 4'hF); @(posedge clk);
+            writeX <= i; writeY <= j; @(posedge clk);
          end
       end
       wrEnable <= 0; @ (posedge clk);
 
       for (i = 0; i < 12; i = i + 1) begin
+         if (i == 6) begin
+            writeX <= 12; writeY <= 12; wrEnable <= 1;
+         end
          for (j = 0; j < 12; j = j + 1) begin
             readX <= i; readY <= j; @(posedge clk);
          end
+         wrEnable <= 0;
       end
+      readX <= 24; readY <= 24; @(posedge clk);
+      readX <= 12; readY <= 12; @(posedge clk);
       $stop;
    end
 endmodule

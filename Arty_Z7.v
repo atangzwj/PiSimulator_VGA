@@ -10,13 +10,17 @@ module Arty_Z7 (
    wire reset;
    assign reset = btn[0];
 
-   wire clk25;
+   // Generate 25MHz clock for VGA controller
+   wire clk25, clk10;
    clk_wiz_0 clk_wiz (
       .clk_out1(clk25),
+      .clk_out2(clk10),
       .reset(reset),
+      .locked(),
       .clk_in1(clk)
    );
 
+   // Pmod Connections
    wire [3:0] r;
    wire [3:0] g;
    wire [3:0] b;
@@ -38,6 +42,7 @@ module Arty_Z7 (
    assign jb_p[3] = HS;
    assign jb_n[3] = VS;
 
+   // VGA controller
    wire [9:0] px_x, px_y;
    wire vidSel;
    PiSimulator_VGA pisim_vga (
@@ -50,16 +55,70 @@ module Arty_Z7 (
       .reset(reset)
    );
 
+   // Divide 10MHz clock for slow clock for LFSRs
+   reg [20:0] clk_div;
+   
+   wire clk_lfsr;
+   assign clk_lfsr = clk_div[20]; // 4.77 Hz
+   always @ (posedge clk10) begin
+      if (reset) clk_div <= 21'b0;
+      else       clk_div <= clk_div + 1'b1;
+   end
+
+   // Generate random coordinates from (0, 0) to (472, 472)
+   wire [8:0] randX, randY;
+   lfsr lfsrX (
+      .q(randX),
+      .clk(clk_lfsr),
+      .reset(reset)
+   );
+ 
+   lfsr lfsrY (
+      .q(randY),
+      .clk(clk_lfsr),
+      .reset(reset)
+   );
+
+   // Pixel memory for image storage
+   wire color;
+   pixelMemory px_mem (
+      .color(color),
+      .readX(px_x),
+      .readY(px_y),
+      .writeX(randX),
+      .writeY(randY),
+      .wrEnable(1'b1),
+      .clk(clk)
+   );
+
+   wire isInside;
+   circleChecker cc (.isInside(isInside), .xCoord(px_x), .yCoord(px_y));
+
    reg [3:0] rSel;
    reg [3:0] gSel;
    reg [3:0] bSel;
    always @ (*) begin
-      if (px_x < 10'd472 & px_y < 10'd472)
-         rSel = 4'hF;
-      else
-         rSel = 4'h0;
-      gSel = 4'h0;
-      bSel = 4'h0;
+      if (isInside) begin
+         if (color) begin
+            rSel = 4'hF; // Points inside circle are set to red
+            gSel = 4'h0;
+            bSel = 4'h0;
+         end else begin
+            rSel = 4'hC; // Gray circle
+            gSel = 4'hC;
+            bSel = 4'hC;
+         end
+      end else begin
+         if (color) begin
+            rSel = 4'h0; // Points outside circle are set to blue
+            gSel = 4'h0;
+            bSel = 4'hF;
+         end else begin
+            rSel = 4'h0; // All other points outside circle are black
+            gSel = 4'h0;
+            bSel = 4'h0;
+         end
+      end
    end
 
    busMux2_1 #(.WIDTH(4)) r_mux (
@@ -80,36 +139,4 @@ module Arty_Z7 (
       .in1(bSel),
       .sel(vidSel)
    );
-endmodule
-
-module busMux2_1 #(parameter WIDTH = 64) (
-   output wire [WIDTH - 1 : 0] out,
-   input  wire [WIDTH - 1 : 0] in0,
-   input  wire [WIDTH - 1 : 0] in1,
-   input  wire                 sel
-);
-
-   genvar i;
-   generate
-      for (i = 0; i < WIDTH; i = i + 1) begin : muxes
-         mux2_1 m (.out(out[i]), .in0(in0[i]), .in1(in1[i]), .sel);
-      end
-   endgenerate
-endmodule
-
-module mux2_1 (
-   output wire out,
-   input  wire in0,
-   input  wire in1,
-   input  wire sel
-);
-
-   wire seln;
-   not n (seln, sel);
-
-   wire out0, out1;
-   and a0 (out0, in0, seln);
-   and a1 (out1, in1, sel);
-
-   or o (out, out0, out1);
 endmodule
