@@ -1,16 +1,23 @@
 module lfsr (
    output reg  [8:0] q,
+   input  wire [7:0] seed,
    input  wire       clk,
    input  wire       reset
 );
-   wire [7:0] rand8;
-   wire [6:0] rand7;
-   wire [5:0] rand6;
-   wire [4:0] rand5;
-   lfsr8 lfsr8_inst (.q(rand8), .clk(clk), .reset(reset));
-   lfsr7 lfsr7_inst (.q(rand7), .clk(clk), .reset(reset));
-   lfsr6 lfsr6_inst (.q(rand6), .clk(clk), .reset(reset));
-   lfsr5 lfsr5_inst (.q(rand5), .clk(clk), .reset(reset));
+   wire [7:0] rand8, seed8;
+   wire [6:0] rand7, seed7;
+   wire [5:0] rand6, seed6;
+   wire [4:0] rand5, seed5;
+
+   assign seed8 = seed;
+   assign seed7 = seed[6:0];
+   assign seed6 = seed[5:0];
+   assign seed5 = seed[4:0];
+
+   lfsr8 lfsr8_inst (.q(rand8), .seed(seed8), .clk(clk), .reset(reset));
+   lfsr7 lfsr7_inst (.q(rand7), .seed(seed7), .clk(clk), .reset(reset));
+   lfsr6 lfsr6_inst (.q(rand6), .seed(seed6), .clk(clk), .reset(reset));
+   lfsr5 lfsr5_inst (.q(rand5), .seed(seed5), .clk(clk), .reset(reset));
 
    // Generate random numbers from 0 to 472
    always @ (posedge clk) begin
@@ -20,6 +27,7 @@ endmodule
 
 module lfsr8 (
    output wire [7:0] q,
+   input  wire [7:0] seed,
    input  wire       clk,
    input  wire       reset
 );
@@ -30,7 +38,7 @@ module lfsr8 (
    genvar i;
    generate
       for (i = 0; i < 8; i = i + 1) begin
-         mux2_1 mux (.out(d[i]), .in0(muxIn0[i]), .in1(1'b0), .sel(reset));
+         mux2_1 mux (.out(d[i]), .in0(muxIn0[i]), .in1(seed[i]), .sel(reset));
          d_ff dff (.q(q[i]), .d(d[i]), .clk(clk), .reset(reset));
       end
    endgenerate
@@ -38,6 +46,7 @@ endmodule
 
 module lfsr7 (
    output wire [6:0] q,
+   input  wire [6:0] seed,
    input  wire       clk,
    input  wire       reset
 );
@@ -48,7 +57,7 @@ module lfsr7 (
    genvar i;
    generate
       for (i = 0; i < 7; i = i + 1) begin
-         mux2_1 mux (.out(d[i]), .in0(muxIn0[i]), .in1(1'b0), .sel(reset));
+         mux2_1 mux (.out(d[i]), .in0(muxIn0[i]), .in1(seed[i]), .sel(reset));
          d_ff dff (.q(q[i]), .d(d[i]), .clk(clk), .reset(reset));
       end
    endgenerate
@@ -56,6 +65,7 @@ endmodule
 
 module lfsr6 (
    output wire [5:0] q,
+   input  wire [5:0] seed,
    input  wire       clk,
    input  wire       reset
 );
@@ -65,7 +75,7 @@ module lfsr6 (
    genvar i;
    generate
       for (i = 0; i < 6; i = i + 1) begin
-         mux2_1 mux (.out(d[i]), .in0(muxIn0[i]), .in1(1'b0), .sel(reset));
+         mux2_1 mux (.out(d[i]), .in0(muxIn0[i]), .in1(seed[i]), .sel(reset));
          d_ff dff (.q(q[i]), .d(d[i]), .clk(clk), .reset(reset));
       end
    endgenerate
@@ -73,6 +83,7 @@ endmodule
 
 module lfsr5 (
    output wire [4:0] q,
+   input  wire [4:0] seed,
    input  wire       clk,
    input  wire       reset
 );
@@ -83,7 +94,7 @@ module lfsr5 (
    genvar i;
    generate
       for (i = 0; i < 5; i = i + 1) begin
-         mux2_1 mux (.out(d[i]), .in0(muxIn0[i]), .in1(1'b0), .sel(reset));
+         mux2_1 mux (.out(d[i]), .in0(muxIn0[i]), .in1(seed[i]), .sel(reset));
          d_ff dff (.q(q[i]), .d(d[i]), .clk(clk), .reset(reset));
       end
    endgenerate
@@ -117,7 +128,7 @@ module lfsr_testbench ();
    initial begin
       reset <= 1; @(posedge clk);
       reset <= 0; @(posedge clk);
-      repeat (24) @(posedge clk);
+      repeat(24)  @(posedge clk);
       $stop;
    end
 endmodule
