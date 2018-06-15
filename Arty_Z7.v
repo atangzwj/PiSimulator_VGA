@@ -142,7 +142,7 @@ module Arty_Z7 (
             bSel = 4'hC;
          end
       end else begin
-         if (color & px_x <= 480) begin
+         if (color && px_x <= 480) begin
             rSel = 4'h0; // Points outside circle and within the circle's
             gSel = 4'h0; // enclosing square are set to blue
             bSel = 4'hF;
