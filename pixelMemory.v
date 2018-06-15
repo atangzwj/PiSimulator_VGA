@@ -9,8 +9,8 @@ module pixelMemory (
 );
 
    parameter
-   FRAME_WIDTH  = 640,
-   FRAME_HEIGHT = 480;
+   FRAME_WIDTH  = 10'd640,
+   FRAME_HEIGHT = 10'd480;
 
    reg px_color [FRAME_WIDTH * FRAME_HEIGHT - 1 : 0];
 

@@ -66,18 +66,13 @@ module Arty_Z7 (
       else       clk_div <= clk_div + 1'b1;
    end
 
-   // Generate random coordinates from (0, 0) to (472, 472)
-   reg  [8:0] randX, randY;
-   wire [8:0] seedX, seedY;
-   assign seedX = 9'h018; // The seeds chosen here must not be equal to each
-   assign seedY = 9'h00C; // other and must not be 9'h1FF, i.e. all bits are set
-                          // to one. Seeds that break these conditions will
-                          // reduce the randomness of the LFSRs.
-
-
-
    // 8-bit LFSRs
-/*   wire [7:0] nextRandX, nextRandY;
+/*   reg  [7:0] randX, randY;
+   wire [7:0] seedX, seedY;
+   assign seedX = 8'h18;
+   assign seedY = 8'h0C;
+
+   wire [7:0] nextRandX, nextRandY;
    xnor xn0 (nextRandX[0], randX[3], randX[4], randX[5], randX[7]);
    assign nextRandX[7:1] = randX[6:0];
 
@@ -95,6 +90,12 @@ module Arty_Z7 (
 */
 
    // 9-bit LFSRs
+   reg  [8:0] randX, randY;
+   wire [8:0] seedX, seedY;
+   assign seedX = 9'h018; // The seeds chosen here must not be equal to each
+   assign seedY = 9'h00C; // other and must not be 9'h1FF, i.e. all bits are set
+                          // to one. Seeds that break these conditions will
+                          // reduce the randomness of the LFSRs.
    wire [8:0] nextRandX, nextRandY;
    xnor xn0 (nextRandX[0], randX[4], randX[8]);
    assign nextRandX[8:1] = randX[7:0];
