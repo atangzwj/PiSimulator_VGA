@@ -57,37 +57,59 @@ module Arty_Z7 (
    );
 
    // Divide 10MHz clock for slow clock for LFSRs
-   reg [5:0] clk_div;
+   reg [1:0] clk_div;
    
    wire clk_lfsr;
-   assign clk_lfsr = clk_div[4]; // 312.5 kHz
+   assign clk_lfsr = clk_div[0]; // 5 MHz
    always @ (posedge clk10) begin
-      if (reset) clk_div <= 21'b0;
+      if (reset) clk_div <= 2'b0;
       else       clk_div <= clk_div + 1'b1;
    end
 
    // Generate random coordinates from (0, 0) to (472, 472)
-   wire [8:0] randX, randY;
-   wire [7:0] seedX, seedY;
-   assign seedX = 8'hCC; // The seeds chosen here must not be equal to each and
-   assign seedY = 8'h90; // must not be of the form 8'bxxxx_1111, i.e. the 4
-                         // least significant bits must not all be one. Seeds
-                         // that break these conditions will reduce the
-                         // randomness of the LFSRs.
+   reg  [8:0] randX, randY;
+   wire [8:0] seedX, seedY;
+   assign seedX = 9'h018; // The seeds chosen here must not be equal to each
+   assign seedY = 9'h00C; // other and must not be 9'h1FF, i.e. all bits are set
+                          // to one. Seeds that break these conditions will
+                          // reduce the randomness of the LFSRs.
 
-   lfsr lfsrX (
-      .q(randX),
-      .seed(seedX),
-      .clk(clk_lfsr),
-      .reset(reset)
-   );
- 
-   lfsr lfsrY (
-      .q(randY),
-      .seed(seedY),
-      .clk(clk_lfsr),
-      .reset(reset)
-   );
+
+
+   // 8-bit LFSRs
+/*   wire [7:0] nextRandX, nextRandY;
+   xnor xn0 (nextRandX[0], randX[3], randX[4], randX[5], randX[7]);
+   assign nextRandX[7:1] = randX[6:0];
+
+   xnor xn1 (nextRandY[0], randY[3], randY[4], randY[5], randY[7]);
+   assign nextRandY[7:1] = randY[6:0];
+   always @ (posedge clk_lfsr) begin
+      if (reset) begin
+         randX <= seedX;
+         randY <= seedY;
+      end else begin
+         randX <= nextRandX;
+         randY <= nextRandY;
+      end
+   end
+*/
+
+   // 9-bit LFSRs
+   wire [8:0] nextRandX, nextRandY;
+   xnor xn0 (nextRandX[0], randX[4], randX[8]);
+   assign nextRandX[8:1] = randX[7:0];
+
+   xnor xn1 (nextRandY[0], randY[4], randY[8]);
+   assign nextRandY[8:1] = randY[7:0];
+   always @ (posedge clk_lfsr) begin
+      if (reset) begin
+         randX <= seedX;
+         randY <= seedY;
+      end else begin
+         randX <= nextRandX;
+         randY <= nextRandY;
+      end
+   end
 
    // Pixel memory for image storage
    wire color;
@@ -119,7 +141,7 @@ module Arty_Z7 (
             bSel = 4'hC;
          end
       end else begin
-         if (color & px_x <= 472) begin
+         if (color & px_x <= 480) begin
             rSel = 4'h0; // Points outside circle and within the circle's
             gSel = 4'h0; // enclosing square are set to blue
             bSel = 4'hF;

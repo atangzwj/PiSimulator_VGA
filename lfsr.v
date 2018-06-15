@@ -25,6 +25,25 @@ module lfsr (
    end
 endmodule
 
+module lfsr9 (
+   output wire [8:0] q,
+   input  wire [8:0] seed,
+   input  wire       clk,
+   input  wire       reset
+);
+
+   wire [8:0] d, muxIn0;
+   xnor xn0 (muxIn0[0], q[4], q[8]); // LFSR taps
+   assign muxIn0[8:1] = q[7:0];
+   genvar i;
+   generate
+      for (i = 0; i < 9; i = i + 1) begin
+         mux2_1 mux (.out(d[i]), .in0(muxIn0[i]), .in1(seed[i]), .sel(reset));
+         d_ff dff (.q(q[i]), .d(d[i]), .clk(clk), .reset(reset));
+      end
+   endgenerate
+endmodule
+
 module lfsr8 (
    output wire [7:0] q,
    input  wire [7:0] seed,

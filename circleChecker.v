@@ -4,7 +4,7 @@ module circleChecker (
    input  wire [9:0] yCoord
 );
 
-   parameter CIRCLE_RADIUS_SQUARED = 18'h3_6640;
+   parameter CIRCLE_RADIUS_SQUARED = 18'h3_8400;
 
    reg [18:0] xSquared, ySquared;
    reg [19:0] squaredSum;
