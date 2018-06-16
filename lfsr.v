@@ -25,23 +25,36 @@ module lfsr (
    end
 endmodule
 
+module lfsr32 (
+   output reg  [31:0] q,
+   input  wire [31:0] seed,
+   input  wire        clk,
+   input  wire        reset
+);
+
+   wire [31:0] nextRand;
+   xnor xn0 (nextRand[0], q[31], q[21], q[1], q[0]);
+   assign nextRand[31:1] = q[30:0];
+   always @ (posedge clk) begin
+      if (reset) q <= seed;
+      else       q <= nextRand;
+   end
+endmodule
+
 module lfsr9 (
-   output wire [8:0] q,
+   output reg  [8:0] q,
    input  wire [8:0] seed,
    input  wire       clk,
    input  wire       reset
 );
 
-   wire [8:0] d, muxIn0;
-   xnor xn0 (muxIn0[0], q[4], q[8]); // LFSR taps
-   assign muxIn0[8:1] = q[7:0];
-   genvar i;
-   generate
-      for (i = 0; i < 9; i = i + 1) begin
-         mux2_1 mux (.out(d[i]), .in0(muxIn0[i]), .in1(seed[i]), .sel(reset));
-         d_ff dff (.q(q[i]), .d(d[i]), .clk(clk), .reset(reset));
-      end
-   endgenerate
+   wire [8:0] nextRand;
+   xnor xn0 (nextRand[0], q[4], q[8]);
+   assign nextRand[8:1] = q[7:0];
+   always @ (posedge clk) begin
+      if (reset) q <= seed;
+      else       q <= nextRand;
+   end
 endmodule
 
 module lfsr8 (
