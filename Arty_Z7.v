@@ -66,51 +66,6 @@ module Arty_Z7 (
       else       clk_div <= clk_div + 1'b1;
    end
 
-   // 8-bit LFSRs
-/*   reg  [7:0] randX, randY;
-   wire [7:0] seedX, seedY;
-   assign seedX = 8'h18;
-   assign seedY = 8'h0C;
-
-   wire [7:0] nextRandX, nextRandY;
-   xnor xn0 (nextRandX[0], randX[3], randX[4], randX[5], randX[7]);
-   assign nextRandX[7:1] = randX[6:0];
-
-   xnor xn1 (nextRandY[0], randY[3], randY[4], randY[5], randY[7]);
-   assign nextRandY[7:1] = randY[6:0];
-   always @ (posedge clk_lfsr) begin
-      if (reset) begin
-         randX <= seedX;
-         randY <= seedY;
-      end else begin
-         randX <= nextRandX;
-         randY <= nextRandY;
-      end
-   end
-*/
-
-   // 9-bit LFSRs
-/*   wire [8:0] randX, randY;
-   wire [8:0] seedX, seedY;
-   assign seedX = 9'h018; // The seeds chosen here must not be equal to each
-   assign seedY = 9'h00C; // other and must not be 9'h1FF, i.e. all bits are set
-                          // to one. Seeds that break these conditions will
-                          // reduce the randomness of the LFSRs.
-   lfsr9 lfsrX (.q(randX), .seed(seedX), .clk(clk_lfsr), .reset(reset));
-   lfsr9 lfsrY (.q(randY), .seed(seedY), .clk(clk_lfsr), .reset(reset));
-*/
-
-   // 32-bit LFSR
-/*   wire  [8:0] randX, randY;
-   wire [31:0] seedX, seedY, qX, qY;
-   assign randX = qX[8:0];
-   assign randY = qY[8:0];
-   assign seedX = 32'hAAAA_CCCC;
-   assign seedY = 32'hDECA_FBAD;
-   lfsr32 lfsrX (.q(qX), .seed(seedX), .clk(clk_lfsr), .reset(reset));
-   lfsr32 lfsrY (.q(qY), .seed(seedY), .clk(clk_lfsr), .reset(reset));
-*/
-
    // 18-bit LFSR
    wire  [8:0] randX, randY;
    wire [17:0] seed, q;
