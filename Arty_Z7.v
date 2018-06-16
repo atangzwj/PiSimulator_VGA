@@ -101,7 +101,7 @@ module Arty_Z7 (
 */
 
    // 32-bit LFSR
-   wire  [8:0] randX, randY;
+/*   wire  [8:0] randX, randY;
    wire [31:0] seedX, seedY, qX, qY;
    assign randX = qX[8:0];
    assign randY = qY[8:0];
@@ -109,6 +109,15 @@ module Arty_Z7 (
    assign seedY = 32'hDECA_FBAD;
    lfsr32 lfsrX (.q(qX), .seed(seedX), .clk(clk_lfsr), .reset(reset));
    lfsr32 lfsrY (.q(qY), .seed(seedY), .clk(clk_lfsr), .reset(reset));
+*/
+
+   // 18-bit LFSR
+   wire  [8:0] randX, randY;
+   wire [17:0] seed, q;
+   assign randX = q[17:9];
+   assign randY = q[8:0];
+   assign seed  = 18'h0_AACC;
+   lfsr18 lfsr (.q(q), .seed(seed), .clk(clk_lfsr), .reset(reset));
 
    // Pixel memory for image storage
    wire color;
@@ -142,8 +151,8 @@ module Arty_Z7 (
       end else begin
          if (color && px_x <= 480) begin
             rSel = 4'h0; // Points outside circle and within the circle's
-            gSel = 4'h0; // enclosing square are set to blue
-            bSel = 4'hF;
+            gSel = 4'hF; // enclosing square are set to cyan
+            bSel = 4'h0;
          end else begin
             rSel = 4'h0; // All other points outside circle are black
             gSel = 4'h0;
