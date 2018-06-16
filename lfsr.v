@@ -145,6 +145,27 @@ module d_ff (
    end
 endmodule
 
+module lfsr32_testbench ();
+   wire [31:0] q;
+   reg  [31:0] seed;
+   reg         clk, reset;
+
+   lfsr32 dut (.q(q), .seed(seed), .clk(clk), .reset(reset));
+
+   parameter CLK_PER = 10;
+   initial begin
+      clk <= 1;
+      forever #(CLK_PER / 2) clk <= ~clk;
+   end
+
+   initial begin
+      reset <= 1; seed <= 32'hAAAA_CCCC; @(posedge clk);
+      reset <= 0;                        @(posedge clk);
+      repeat(24)                         @(posedge clk);
+      $stop;
+   end
+endmodule
+
 module lfsr_testbench ();
    wire [8:0] q;
    reg        clk, reset;
