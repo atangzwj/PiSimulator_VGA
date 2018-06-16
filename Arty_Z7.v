@@ -57,12 +57,12 @@ module Arty_Z7 (
    );
 
    // Divide 10MHz clock for slow clock for LFSRs
-   reg [1:0] clk_div;
+   reg [20:0] clk_div;
    
    wire clk_lfsr;
-   assign clk_lfsr = clk_div[0]; // 5 MHz
+   assign clk_lfsr = clk_div[20]; // 4.77 Hz
    always @ (posedge clk10) begin
-      if (reset) clk_div <= 2'b0;
+      if (reset) clk_div <= 21'b0;
       else       clk_div <= clk_div + 1'b1;
    end
 
@@ -90,27 +90,14 @@ module Arty_Z7 (
 */
 
    // 9-bit LFSRs
-   reg  [8:0] randX, randY;
+   wire [8:0] randX, randY;
    wire [8:0] seedX, seedY;
    assign seedX = 9'h018; // The seeds chosen here must not be equal to each
    assign seedY = 9'h00C; // other and must not be 9'h1FF, i.e. all bits are set
                           // to one. Seeds that break these conditions will
                           // reduce the randomness of the LFSRs.
-   wire [8:0] nextRandX, nextRandY;
-   xnor xn0 (nextRandX[0], randX[4], randX[8]);
-   assign nextRandX[8:1] = randX[7:0];
-
-   xnor xn1 (nextRandY[0], randY[4], randY[8]);
-   assign nextRandY[8:1] = randY[7:0];
-   always @ (posedge clk_lfsr) begin
-      if (reset) begin
-         randX <= seedX;
-         randY <= seedY;
-      end else begin
-         randX <= nextRandX;
-         randY <= nextRandY;
-      end
-   end
+   lfsr9 lfsrX (.q(randX), .seed(seedX), .clk(clk_lfsr), .reset(reset));
+   lfsr9 lfsrY (.q(randY), .seed(seedY), .clk(clk_lfsr), .reset(reset));
 
    // Pixel memory for image storage
    wire color;
@@ -121,7 +108,7 @@ module Arty_Z7 (
       .writeX(randX),
       .writeY(randY),
       .wrEnable(1'b1),
-      .clk(clk)
+      .clk(clk25)
    );
 
    wire isInside;
