@@ -3,6 +3,7 @@ module Arty_Z7 (
    output wire [4:1] ja_n,
    output wire [3:1] jb_p,
    output wire [3:1] jb_n,
+   input  wire [1:0] sw,
    input  wire [0:0] btn,
    input  wire       clk
 );
@@ -57,14 +58,38 @@ module Arty_Z7 (
    );
 
    // Divide 10MHz clock for slow clock for LFSRs
-   reg [20:0] clk_div;
-   
+   reg [15:0] clk_div;
+   reg  [3:0] en, en_delay;
+   wire [3:0] en_wide;
+   assign en_wide = en | en_delay; // en_wide is twice the width of en, which is
+                                   // the length of clk_lfsr's period
    wire clk_lfsr;
-   assign clk_lfsr = clk_div[16]; // 76.29 Hz
+   assign clk_lfsr = clk_div[0]; // 5 MHZ
    always @ (posedge clk10) begin
       if (reset) clk_div <= 21'b0;
       else       clk_div <= clk_div + 1'b1;
+
+      if (clk_div == 16'h8000)       en[0] <= 1'b1; // 152.59 Hz
+      else                           en[0] <= 1'b0;
+
+      if (clk_div[13:0] == 14'h2000) en[1] <= 1'b1; // 610.35 Hz
+      else                           en[1] <= 1'b0;
+
+      if (clk_div[11:0] == 12'h800)  en[2] <= 1'b1; // 2.441 kHz
+      else                           en[2] <= 1'b0;
+
+      if (clk_div[9:0] == 10'h200)   en[3] <= 1'b1; // 9.765 kHz
+      else                           en[3] <= 1'b0;
+
+      en_delay <= en;
    end
+
+   wire en_lfsr;
+   mux4_1 enableSelector (
+      .out(en_lfsr),
+      .in(en_wide),
+      .sel(sw)
+   );
 
    // 18-bit LFSR
    wire  [8:0] randX, randY;
@@ -72,7 +97,13 @@ module Arty_Z7 (
    assign randX = q[17:9];
    assign randY = q[8:0];
    assign seed  = 18'h0_AACC;
-   lfsr18 lfsr (.q(q), .seed(seed), .clk(clk_lfsr), .reset(reset));
+   lfsr18 lfsr (
+      .q(q),
+      .seed(seed),
+      .enable(en_lfsr),
+      .clk(clk_lfsr),
+      .reset(reset)
+   );
 
    // Pixel memory for image storage
    wire color;
@@ -106,7 +137,7 @@ module Arty_Z7 (
       end else begin
          if (color && px_x <= 480) begin
             rSel = 4'h0; // Points outside circle and within the circle's
-            gSel = 4'hF; // enclosing square are set to cyan
+            gSel = 4'hF; // enclosing square are set to green
             bSel = 4'h0;
          end else begin
             rSel = 4'h0; // All other points outside circle are black

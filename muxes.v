@@ -29,3 +29,22 @@ module mux2_1 (
 
    or o (out, out0, out1);
 endmodule
+
+module mux4_1 (
+   output wire       out,
+   input  wire [3:0] in,
+   input  wire [1:0] sel
+);
+
+   wire [1:0] seln;
+   not n0 (seln[0], sel[0]);
+   not n1 (seln[1], sel[1]);
+
+   wire out0, out1, out2, out3;
+   and a0 (out0, in[0], seln[1], seln[0]);
+   and a1 (out1, in[1], seln[1], sel[0]);
+   and a2 (out2, in[2], sel[1],  seln[0]);
+   and a3 (out3, in[3], sel[1],  sel[0]);
+
+   or o (out, out0, out1, out2, out3);
+endmodule
