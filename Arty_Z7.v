@@ -85,11 +85,7 @@ module Arty_Z7 (
    end
 
    wire en_lfsr;
-   mux4_1 enableSelector (
-      .out(en_lfsr),
-      .in(en_wide),
-      .sel(sw)
-   );
+   mux4_1 enableSelector (.out(en_lfsr), .in(en_wide), .sel(sw));
 
    // 18-bit LFSR
    wire  [8:0] randX, randY;
@@ -105,12 +101,17 @@ module Arty_Z7 (
       .reset(reset)
    );
 
+   reg [9:0] px_y_inv; // Invert image across horizontal axis
+   always @ (*) begin
+      px_y_inv = 10'd480 - px_y;
+   end
+
    // Pixel memory for image storage
    wire color;
    pixelMemory px_mem (
       .color(color),
       .readX(px_x),
-      .readY(px_y),
+      .readY(px_y_inv),
       .writeX(randX),
       .writeY(randY),
       .wrEnable(1'b1),
@@ -118,7 +119,7 @@ module Arty_Z7 (
    );
 
    wire isInside;
-   circleChecker cc (.isInside(isInside), .xCoord(px_x), .yCoord(px_y));
+   circleChecker cc (.isInside(isInside), .xCoord(px_x), .yCoord(px_y_inv));
 
    reg [3:0] rSel;
    reg [3:0] gSel;
